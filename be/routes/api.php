@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\courseController;
+use App\Http\Controllers\babController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,15 @@ Route::prefix('course')->group(function () {
     Route::get('show/{id}', [courseController::class, 'show']);
     Route::put('update/{id}', [courseController::class, 'update']);
     Route::delete('destroy/{id}', [courseController::class, 'destroy']);
+});
+
+//prefix bab
+Route::prefix('bab')->group(function () {
+    Route::post('store', [babController::class, 'store']);
+    Route::post('index', [babController::class, 'index']);
+    Route::get('show/{id}', [babController::class, 'show']);
+    Route::put('update/{id}', [babController::class, 'update']);
+    Route::delete('destroy/{id}', [babController::class, 'destroy']);
 });
 
 
