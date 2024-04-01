@@ -42,12 +42,14 @@ const router = createRouter({
           path: "/kelola_kursus",
           name: "formlayout",
           component: () => import("@/views/kursus/kelolaKursus.vue"),
+          meta: { requiresAuth: true },
         },
         //kelola_kursus dengan parameter id
         {
           path: "/kelola_kursus_id/:id",
           name: "kelola_kursus_id",
           component: () => import("@/views/kursus/kelolaKursusId.vue"),
+          meta: { requiresAuth: true },
         },
         {
           path: "/uikit/input",

@@ -13,6 +13,18 @@ return new class extends Migration
     {
         Schema::create('materis', function (Blueprint $table) {
             $table->id();
+            //course_id
+            $table->unsignedBigInteger('course_id');
+            //bab_id
+            $table->unsignedBigInteger('bab_id');
+            //name
+            $table->string('name');
+            //jenis
+            $table->string('jenis');
+            //isi
+            $table->text('isi');
+            //status
+            $table->string('status');
             $table->timestamps();
         });
     }

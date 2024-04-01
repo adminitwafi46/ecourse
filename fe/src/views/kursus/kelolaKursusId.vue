@@ -59,6 +59,50 @@
       </template>
     </Dialog>
     <Dialog
+      header="Materi Baru"
+      v-model:visible="tambah_materi_overlay"
+      :breakpoints="{ '960px': '75vw' }"
+      :style="{ width: '50vw' }"
+      :modal="true"
+    >
+      <p class="line-height-3 m-0">
+        <!-- Form Materi Baru -->
+       <!--name-->
+        <input type="text" v-model="new_materi_data.name" placeholder="Masukkan nama materi" class="w-full p-3">
+        <!-- jenis, dengan option select ada text, video, pdf -->
+        <br><br>
+            Jenis Materi : 
+        <br>
+        <select v-model="new_materi_data.jenis" class="w-full p-3" placeholder="Jenis Materi">
+          <option value="text">Text</option>
+          <option value="video">Video</option>
+          <option value="pdf">PDF</option>
+        </select>
+
+        <br><br>
+        <ckeditor v-if="new_materi_data.jenis === 'text'" :editor="editor" v-model="editorData" :config="editorConfig" class="custom-editor"></ckeditor>
+
+        <div v-if="new_materi_data.jenis === 'video'"  >Masukkan file video :</div>
+        <input type="file" v-if="new_materi_data.jenis === 'video'" class="w-full form-control p-3" @change="handleVideoUpload">
+        <div v-if="new_materi_data.jenis === 'pdf'"  >Masukkan file pdf :</div>
+        <input type="file" v-if="new_materi_data.jenis === 'pdf'" class="w-full form-control p-3" v-on:change="new_materi_data.pdf">
+        <!--text area untuk description-->
+        <br>
+        <textarea v-model="new_materi_data.description" placeholder="Masukkan deskripsi materi" class="w-full p-5"></textarea>
+        <br>
+        <!--button save dan memanggil fungsi save_materi-->
+        <Button
+          label="Save"
+          @click="save_materi"
+          icon="pi pi-check"
+          class="p-button"
+        />
+    </p>
+      <template #footer>
+        
+      </template>
+    </Dialog>
+    <Dialog
       header="Edit Bab"
       v-model:visible="edit_bab_overlay"
       :breakpoints="{ '960px': '75vw' }"
@@ -100,7 +144,8 @@
         <h5>List Bab</h5>
         <ul class="list-group">
             <li v-for="item, index in list_bab_id" class="list-group-item mr-15" key="index">{{item.name}}
-            <Button icon="pi pi-pencil" @click="edit_bab(item.id)"  class="p-button-rounded p-button-success mr-2 ml-5" />
+            <Button icon="pi pi-eye" @click="liat_materi(item.id)" class="p-button-rounded p-button-info mr-2 ml-5" />
+            <Button icon="pi pi-pencil" @click="edit_bab(item.id)"  class="p-button-rounded p-button-success mr-2" />
             <Button icon="pi pi-trash" @click="delete_bab(item.id)" class="p-button-rounded p-button-danger" />
             </li>
 
@@ -109,7 +154,20 @@
     </div>
     <div class="col-12 md:col-8">
       <div class="card">
-        <h5>Panel</h5>
+              <div class="card">
+        <h5>Materi Bab : {{materi.data_bab.name}} </h5>
+        <Toolbar>
+          <template v-slot:start>
+            <Button
+              @click="materi_baru"
+              label="Materi Baru"
+              icon="pi pi-plus"
+              class="mr-2"
+            />
+          </template>
+        </Toolbar>
+      </div>
+        
         <Panel header="Header" :toggleable="true">
           <p class="line-height-3 m-0">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
@@ -272,15 +330,35 @@
 </template>
 
 <script>
-import { show_kursus, create_bab, list_bab, show_bab, update_bab, delete_bab } from "@/api/index";
+import { 
+    show_kursus, 
+    create_bab, 
+    list_bab, show_bab, 
+    update_bab, 
+    delete_bab,
+    create_materi } from "@/api/index";
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+
 export default {
   data() {
     return {
         edit_bab_overlay: false,
+        editor : ClassicEditor,
+        editorData: '<br><br><br><br><br>',
+        editorConfig: {
+                    // The configuration of the editor.
+                },
+        tambah_materi_overlay: false,
       // Declare any data properties you need here
       data_course: {},
+      new_materi_data : {},
+      materi : {
+        data_bab : {},
+        list_materi : [],
+      },
       list_bab_id : [],
       id: null,
+
       index_bab : null,
       new_bab: false,
       data_bab_baru: {
@@ -314,6 +392,10 @@ export default {
       });
   },
   methods: {
+    handleVideoUpload(e) {
+        console.log(e.target.files[0]);
+        this.new_materi_data.video = e.target.files[0];
+    },
     new_bab_overlay() {
       this.new_bab = true;
     },
@@ -392,6 +474,49 @@ export default {
               });
         }
     },
+    liat_materi(id) {
+        //ambil data bab dengan show bab per id lalu simpan ke this.materi.data_bab
+        show_bab(id)
+          .then((response) => {
+            this.materi.data_bab = response.data;
+            console.log(this.materi);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+    },
+    materi_baru() {
+        //if this.materi.data_bab.id is null, alert("Pilih bab terlebih dahulu")
+        if (this.materi.data_bab.id == null) {
+            alert("Pilih bab terlebih dahulu");
+        } else {
+            this.tambah_materi_overlay = true;
+        }
+    },
+    save_materi() {
+        //save materi
+        console.log(this.new_materi_data);
+        //masukkan this.id ke this.new_materi_data.bab_id
+        this.new_materi_data.bab_id = this.materi.data_bab.id;
+        this.new_materi_data.text = this.editorData;
+        //panggil API create_materi
+        create_materi(this.new_materi_data)
+          .then((response) => {
+            console.log(response);
+            alert("Materi berhasil ditambahkan");
+            this.tambah_materi_overlay = false;
+            this.new_materi_data = {};
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+    },
   },
 };
 </script>
+<style scoped>
+.custom-editor {
+  max-height: 10em; /* Atur tinggi maksimum menjadi 10 baris */
+  overflow-y: auto; /* Tambahkan overflow untuk memastikan konten dapat diakses */
+}
+</style>

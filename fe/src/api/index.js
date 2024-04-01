@@ -1,6 +1,9 @@
 import axios from "axios";
 
 const API_URL = "http://127.0.0.1:8000/api";
+const config = {
+  headers: { "content-type": "multipart/form-data" },
+};
 function getToken() {
   return localStorage.getItem("token");
 }
@@ -145,6 +148,21 @@ export const delete_bab = async (babId) => {
   try {
     const response = await axiosInstance.delete(
       `${API_URL}/bab/destroy/${babId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//materi store dengan config multipart form data
+export const create_materi = async (materiData) => {
+  try {
+    const response = await axiosInstance.post(
+      `${API_URL}/materi/store`,
+      materiData,
+      config
     );
     return response.data;
   } catch (error) {

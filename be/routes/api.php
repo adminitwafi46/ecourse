@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\courseController;
 use App\Http\Controllers\babController;
+use App\Http\Controllers\materiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,5 +49,8 @@ Route::prefix('bab')->group(function () {
     Route::delete('destroy/{id}', [babController::class, 'destroy']);
 });
 
-
+//prefix materi
+Route::prefix('materi')->group(function () {
+    Route::post('store', [materiController::class, 'store']);
+});
 
