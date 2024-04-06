@@ -51,6 +51,13 @@ const router = createRouter({
           component: () => import("@/views/kursus/kelolaKursusId.vue"),
           meta: { requiresAuth: true },
         },
+        //kelola kuis dengan parameter id
+        {
+          path: "/kelola_kuis_id/:id",
+          name: "kelola_kuis_id",
+          component: () => import("@/views/kursus/kelolaKuisId.vue"),
+          meta: { requiresAuth: true },
+        },
         {
           path: "/uikit/input",
           name: "input",

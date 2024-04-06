@@ -170,3 +170,172 @@ export const create_materi = async (materiData) => {
     throw error;
   }
 };
+
+//list materi dengan parameter bab_id, pake get
+export const list_materi = async (babId) => {
+  try {
+    const response = await axiosInstance.get(
+      `${API_URL}/materi/index/${babId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//show materi dengan parameter id
+export const show_materi = async (materiId) => {
+  try {
+    const response = await axiosInstance.get(
+      `${API_URL}/materi/show/${materiId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//update materi dengan parameter id (post)
+export const update_materi = async (materiId, materiData) => {
+  try {
+    const response = await axiosInstance.post(
+      `${API_URL}/materi/update/${materiId}`,
+      materiData
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//delete materi dengan parameter id
+export const delete_materi = async (materiId) => {
+  try {
+    const response = await axiosInstance.delete(
+      `${API_URL}/materi/destroy/${materiId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//membuat kuis baru
+export const create_kuis = async (kuisData) => {
+  try {
+    const response = await axiosInstance.post(
+      `${API_URL}/kuis/store`,
+      kuisData
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//list kuis dengan parameter bab_id (get)
+export const show_list_kuis = async (babId) => {
+  try {
+    const response = await axiosInstance.get(`${API_URL}/kuis/index/${babId}`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//show kuis dengan parameter id
+export const show_kuis_id = async (kuisId) => {
+  try {
+    const response = await axiosInstance.get(`${API_URL}/kuis/show/${kuisId}`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//update kuis dengan parameter id (post)
+export const update_kuis_id = async (kuisId, kuisData) => {
+  try {
+    const response = await axiosInstance.post(
+      `${API_URL}/kuis/update/${kuisId}`,
+      kuisData
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//delete kuis dengan parameter id
+export const delete_kuis_id = async (kuisId) => {
+  try {
+    const response = await axiosInstance.delete(
+      `${API_URL}/kuis/destroy/${kuisId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//show list jawaab kuis dengan parameter kuis_id
+export const show_list_jawaban_kuis = async (kuisId) => {
+  try {
+    const response = await axiosInstance.get(
+      `${API_URL}/jawaban/index/${kuisId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//jawaban baru (post)
+export const create_jawaban = async (jawabanData) => {
+  try {
+    const response = await axiosInstance.post(
+      `${API_URL}/jawaban/store`,
+      jawabanData
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//update jawaban benar dengan parameter id (get)
+export const update_jawaban_benar = async (jawabanId) => {
+  try {
+    const response = await axiosInstance.get(
+      `${API_URL}/jawaban/benar/${jawabanId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//delete jawaban dengan parameter id
+export const delete_jawaban = async (jawabanId) => {
+  try {
+    const response = await axiosInstance.delete(
+      `${API_URL}/jawaban/destroy/${jawabanId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};

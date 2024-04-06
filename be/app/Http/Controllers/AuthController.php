@@ -73,6 +73,61 @@ class AuthController extends Controller
         return response()->json(auth()->user());
     }
 
+    //get user information
+    public function user()
+    {
+        return response()->json(auth()->user());
+    }
+
+    //save user information
+    public function save_user(Request $request)
+    {
+        $user = User::find(auth()->user()->id);
+        $user->name = $request->name;
+        $user->email = $request->email;
+        //cek jika email sudah ada (jika email adalah email lain selain email user yang sedang login)
+        if ($request->email != auth()->user()->email) {
+            $validator = Validator::make(request()->all(), [
+                'email' => 'required|email|unique:users',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 401);
+            }
+        }
+        $user->save();
+
+        return response()->json([
+            'message' => 'User information updated',
+            'user' => $user,
+        ]);
+    }
+
+    //save password
+    public function save_password(Request $request)
+    {
+        $user = User::find(auth()->user()->id);
+        //cek password lama
+        if (!password_verify($request->old_password, $user->password)) {
+            return response()->json([
+                'message' => 'Old password is wrong',
+            ], 401);
+        }
+        //cek password baru
+        if ($request->new_password != $request->confirm_password) {
+            return response()->json([
+                'message' => 'New password and confirm password is not match',
+            ], 401);
+        }
+        //update password
+        $user->password = bcrypt($request->new_password);
+        $user->save();
+
+        return response()->json([
+            'message' => 'Password updated',
+        ]);
+    }
+
     /**
      * Log the user out (Invalidate the token).
      *

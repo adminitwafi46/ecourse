@@ -21,6 +21,24 @@
         </Toolbar>
       </div>
     </div>
+    <Dialog header="Edit Materi" v-model:visible="edit_materi_overlay" :breakpoints="{ '960px': '75vw' }" :style="{ width: '50vw' }" :modal="true">
+      <p class="line-height-3 m-0">
+        <!--name-->
+        <input type="text" v-model="edit_materi_data.name" placeholder="Masukkan nama materi" class="w-full p-3">         
+        <!-- jika jenis === text maka gunakan ckeditor--><br><br>
+        <ckeditor v-if="edit_materi_data.jenis === 'text'" :editor="editor" v-model="edit_materi_data.isi" :config="editorConfig" class="custom-editor"></ckeditor>
+        <!-- jika jenis === youtube maka gunakan input text dan preview video menggunakan embed--><br><br>
+        <input type="text" v-if="edit_materi_data.jenis === 'youtube'" v-model="edit_materi_data.isi" placeholder="Masukkan url youtube" class="w-full p-3">
+        <iframe v-if="edit_materi_data.jenis === 'youtube'" :src="`https://www.youtube.com/embed/${edit_materi_data.isi}`" width="100%" height="500px" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        
+        <!--descriptiom-->
+        Deskripsi :
+        <textarea v-model="edit_materi_data.description" placeholder="Masukkan deskripsi materi" class="w-full p-5"></textarea>
+      </p>
+                    <template #footer>
+                        <Button label="Save" @click="simpan_edit_materi" icon="pi pi-check" class="p-button-outlined" />
+                    </template>
+    </Dialog>
     <Dialog
       header="Bab Baru"
       v-model:visible="new_bab"
@@ -77,6 +95,9 @@
           <option value="text">Text</option>
           <option value="video">Video</option>
           <option value="pdf">PDF</option>
+          <option value="youtube">Youtube</option>
+          <!--kuis-->
+          <option value="quiz">Quiz</option>
         </select>
 
         <br><br>
@@ -85,7 +106,10 @@
         <div v-if="new_materi_data.jenis === 'video'"  >Masukkan file video :</div>
         <input type="file" v-if="new_materi_data.jenis === 'video'" class="w-full form-control p-3" @change="handleVideoUpload">
         <div v-if="new_materi_data.jenis === 'pdf'"  >Masukkan file pdf :</div>
-        <input type="file" v-if="new_materi_data.jenis === 'pdf'" class="w-full form-control p-3" v-on:change="new_materi_data.pdf">
+        <input type="file" v-if="new_materi_data.jenis === 'pdf'" class="w-full form-control p-3" @change="handlePdfUpload">
+        <div v-if="new_materi_data.jenis === 'youtube'"  >Masukkan url youtube:</div>
+        <input type="text" v-if="new_materi_data.jenis === 'youtube'" class="w-full form-control p-3" v-model="new_materi_data.text">
+        
         <!--text area untuk description-->
         <br>
         <textarea v-model="new_materi_data.description" placeholder="Masukkan deskripsi materi" class="w-full p-5"></textarea>
@@ -167,165 +191,54 @@
           </template>
         </Toolbar>
       </div>
-        
-        <Panel header="Header" :toggleable="true">
-          <p class="line-height-3 m-0">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-            culpa qui officia deserunt mollit anim id est laborum.
-          </p>
-        </Panel>
-      </div>
-      <div class="card">
-        <h5>Fieldset</h5>
-        <Fieldset legend="Legend" :toggleable="true">
-          <p class="line-height-3 m-0">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-            culpa qui officia deserunt mollit anim id est laborum.
-          </p>
-        </Fieldset>
-      </div>
+        <div v-for="item, index in materi.list_materi" key="index">
+<Panel :header="`${item.name} | ${item.jenis}`" :toggleable="true">
+  <p v-if="item.jenis === 'text'" class="line-height-3 m-0">
+    <div v-html="item.isi"></div>
+  </p>
+  <object v-else-if="item.jenis === 'pdf'" :data="`http://localhost:8000/materi_pdf/${item.isi}`" type="application/pdf" width="100%" height="500px">
+    <p>Silahkan unduh konten jika ebook tidak muncul</p>
+    <embed :src="`http://localhost:8000/materi_pdf/${item.isi}`" type="application/pdf" width="100%" height="500px" />
+    <a :href="`http://localhost:8000/materi_pdf/${item.isi}`" download class="p-button pi pi-download text-white"> Download</a>
+  </object>
+  <div v-else-if="item.jenis === 'video'">
+    <video :src="`http://localhost:8000/materi_video/${item.isi}`" controls width="100%" height="auto">
+      Your browser does not support the video tag.
+    </video>
+    <a :href="`http://localhost:8000/materi_video/${item.isi}`" download class="p-button pi pi-download text-white"> Download Video</a>
+  </div>
+  <div v-else-if="item.jenis === 'youtube'">
+    <iframe width="100%" height="500px" :src="`https://www.youtube.com/embed/${item.isi}`" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </div>
+  <div v-else-if="item.jenis === 'quiz'">
+    <!--buat tombol untuk memanggil fungsi kelola_kuis(item.id)-->
+    <Button label="Kelola Kuis" @click="kelola_kuis(item.id)" class="p-button-rounded p-button-info" />
+  </div>
+  
+  <p class="line-height-3 m-0">
+    <i>Deskripsi:</i><br>
+    {{item.description}}
+  </p><br>
+  Pilihan:<br>
+  <!--dua tombol dan iconnya yaitu edit dan hapus-->
+  <Button icon="pi pi-pencil" @click="edit_materi(item.id)" class="p-button-rounded p-button-success mr-2" />
+  <Button icon="pi pi-trash" @click="delete_materi_id(item.id)" class="p-button-rounded p-button-danger" />
+</Panel>
 
-      <Card>
-        <template v-slot:title>
-          <div class="flex align-items-center justify-content-between mb-0">
-            <h5>Card</h5>
-            <Button icon="pi pi-plus" class="p-button-text" @click="toggle" />
-          </div>
-          <Menu
-            id="config_menu"
-            ref="menuRef"
-            :model="cardMenu"
-            :popup="true"
-          />
-        </template>
 
-        <template v-slot:content>
-          <p class="line-height-3 m-0">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-            culpa qui officia deserunt mollit anim id est laborum.
-          </p>
-        </template>
-      </Card>
-    </div>
 
-    <div class="col-12">
-      <div class="card">
-        <h5>Divider</h5>
-        <div class="grid">
-          <div class="col-5 flex align-items-center justify-content-center">
-            <div class="p-fluid">
-              <div class="field">
-                <label for="username">Username</label>
-                <InputText id="username" type="text" />
-              </div>
-              <div class="field">
-                <label for="password">Password</label>
-                <InputText id="password" type="password" />
-              </div>
-              <Button label="Login" class="mt-2"></Button>
-            </div>
-          </div>
-
-          <div class="col-2">
-            <Divider layout="vertical">
-              <b>OR</b>
-            </Divider>
-          </div>
-          <div class="col-5 align-items-center justify-content-center">
-            <p class="line-height-3 m-0">
-              Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-              accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
-              quae ab illo inventore veritatis et quasi architecto beatae vitae
-              dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit
-              aspernatur aut odit aut fugit, sed quia consequuntur magni dolores
-              eos qui ratione voluptatem sequi nesciunt. Consectetur, adipisci
-              velit, sed quia non numquam eius modi.
-            </p>
-
-            <Divider layout="horizontal" align="center">
-              <span class="p-tag">Badge</span>
-            </Divider>
-
-            <p class="line-height-3 m-0">
-              At vero eos et accusamus et iusto odio dignissimos ducimus qui
-              blanditiis praesentium voluptatum deleniti atque corrupti quos
-              dolores et quas molestias excepturi sint occaecati cupiditate non
-              provident, similique sunt in culpa qui officia deserunt mollitia
-              animi, id est laborum et dolorum fuga. Et harum quidem rerum
-              facilis est et expedita distinctio. Nam libero tempore, cum soluta
-              nobis est eligendi optio cumque nihil impedit quo minus.
-            </p>
-
-            <Divider align="right">
-              <Button
-                label="Button"
-                icon="pi pi-search"
-                class="p-button-outlined"
-              ></Button>
-            </Divider>
-
-            <p class="line-height-3 m-0">
-              Temporibus autem quibusdam et aut officiis debitis aut rerum
-              necessitatibus saepe eveniet ut et voluptates repudiandae sint et
-              molestiae non recusandae. Itaque earum rerum hic tenetur a
-              sapiente delectus, ut aut reiciendis voluptatibus maiores alias
-              consequatur aut perferendis doloribus asperiores repellat. Donec
-              vel volutpat ipsum. Integer nunc magna, posuere ut tincidunt eget,
-              egestas vitae sapien. Morbi dapibus luctus odio.
-            </p>
-          </div>
+        <br>
         </div>
+                
       </div>
+      
+
+      
     </div>
 
-    <div class="col-12">
-      <div class="card">
-        <h5>Splitter</h5>
+    
 
-        <Splitter style="height: 300px" class="mb-5">
-          <SplitterPanel :size="30" :minSize="10">
-            <div
-              className="h-full flex align-items-center justify-content-center"
-            >
-              Panel 1
-            </div>
-          </SplitterPanel>
-          <SplitterPanel :size="70">
-            <Splitter layout="vertical">
-              <SplitterPanel :size="15">
-                <div
-                  className="h-full flex align-items-center justify-content-center"
-                >
-                  Panel 2
-                </div>
-              </SplitterPanel>
-              <SplitterPanel :size="50">
-                <div
-                  className="h-full flex align-items-center justify-content-center"
-                >
-                  Panel 3
-                </div>
-              </SplitterPanel>
-            </Splitter>
-          </SplitterPanel>
-        </Splitter>
-      </div>
-    </div>
+    
   </div>
 </template>
 
@@ -336,13 +249,19 @@ import {
     list_bab, show_bab, 
     update_bab, 
     delete_bab,
-    create_materi } from "@/api/index";
+    create_materi,
+    list_materi,  
+    show_materi,
+    update_materi,
+    delete_materi
+  } from "@/api/index";
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 export default {
   data() {
     return {
         edit_bab_overlay: false,
+        edit_materi_overlay: false,
         editor : ClassicEditor,
         editorData: '<br><br><br><br><br>',
         editorConfig: {
@@ -367,6 +286,7 @@ export default {
         course_id: null,
       },
     data_perbab_id : {},
+    edit_materi_data : {},
     };
   },
   mounted() {
@@ -395,6 +315,10 @@ export default {
     handleVideoUpload(e) {
         console.log(e.target.files[0]);
         this.new_materi_data.video = e.target.files[0];
+    },
+    handlePdfUpload(e) {
+        console.log(e.target.files[0]);
+        this.new_materi_data.pdf = e.target.files[0];
     },
     new_bab_overlay() {
       this.new_bab = true;
@@ -484,6 +408,16 @@ export default {
           .catch((error) => {
             console.log(error);
           });
+        //ambil list materi dengan list_materi per id lalu simpan ke this.materi.list_materi
+        list_materi(id)
+          .then((response) => {
+            this.materi.list_materi = response.data;
+            console.log(this.materi);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+          console.log(this.materi);
     },
     materi_baru() {
         //if this.materi.data_bab.id is null, alert("Pilih bab terlebih dahulu")
@@ -493,12 +427,66 @@ export default {
             this.tambah_materi_overlay = true;
         }
     },
+    edit_materi(id) {
+        this.edit_materi_overlay = true;
+        //ambil data materi dengan show_materi per id lalu simpan ke this.edit_materi_data
+        show_materi(id)
+          .then((response) => {
+            this.edit_materi_data = response.data;
+            console.log(this.edit_materi_data);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+    },
+    simpan_edit_materi() {
+        console.log(this.edit_materi_data);
+        //panggil API update_materi
+        update_materi(this.edit_materi_data.id, this.edit_materi_data)
+          .then((response) => {
+            console.log(response);
+            alert("Materi berhasil diupdate");
+            this.edit_materi_overlay = false;
+            //panggil liat_materi
+            this.liat_materi(this.materi.data_bab.id);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+    },
+    delete_materi_id(id) {
+        //alert konfirmasi dulu
+        if (confirm("Apakah anda yakin ingin menghapus materi ini?")) {
+            delete_materi(id)
+              .then((response) => {
+                console.log(response);
+                alert("Materi berhasil dihapus");
+                //panggil liat_materi
+                this.liat_materi(this.materi.data_bab.id);
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+        }
+    },
+    //fungsi kelola kuis dengan mempush route dengan parameter id
+    kelola_kuis(id) {
+        this.$router.push({ name: 'kelola_kuis_id', params: { id: id } });
+    },
     save_materi() {
         //save materi
         console.log(this.new_materi_data);
         //masukkan this.id ke this.new_materi_data.bab_id
         this.new_materi_data.bab_id = this.materi.data_bab.id;
-        this.new_materi_data.text = this.editorData;
+        //jika jenis materi adalah text, maka isi materi adalah editorData
+        if (this.new_materi_data.jenis === 'text') {
+            this.new_materi_data.isi = this.editorData;
+        }
+        //jika jenis materi adalah quiz maka isi materi adalah null
+        if (this.new_materi_data.jenis === 'quiz') {
+            this.new_materi_data.isi = null;
+        }
+        
         //panggil API create_materi
         create_materi(this.new_materi_data)
           .then((response) => {
@@ -506,6 +494,8 @@ export default {
             alert("Materi berhasil ditambahkan");
             this.tambah_materi_overlay = false;
             this.new_materi_data = {};
+            //panggil liat_materi
+            this.liat_materi(this.materi.data_bab.id);
           })
           .catch((error) => {
             console.log(error);
